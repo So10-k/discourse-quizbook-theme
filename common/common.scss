@@ -1,13 +1,21 @@
-// Quiz Book Discourse theme
+// Quiz Book Discourse theme — full picture-book reskin.
 //
-// Strategy: Discourse exposes most chrome through its theme color
-// scheme + a handful of CSS custom properties. We override those at
-// :root, then layer specific selectors for the remaining stock UI
-// (header, post buttons, sidebar) so the result reads as a
-// picture-book site instead of a default Discourse instance.
+// Strategy:
+//   • Replace Discourse's stock chrome look (flat, modern-SaaS) with
+//     the main site's picture-book treatment (sky-gradient body, thick
+//     navy borders, offset pop shadows, Fredoka display + Quicksand
+//     body, sun-yellow + coral accents).
+//   • Don't fork Discourse — we override CSS variables it already
+//     exposes + layer specific selectors for the visible chrome
+//     (header, topic list, category list, buttons, avatars, sidebar,
+//     post body, footer). Discourse upgrades won't break this.
+//   • Where Discourse uses `!important` on its own utility classes,
+//     we match it. The `!important`s are intentional, not lazy.
 
 // ── design tokens (mirror /app/globals.css on the main site) ────
-:root {
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
   --qb-sky-1: #B7E5FF;
   --qb-sky-2: #87CEEB;
   --qb-sun: #FFD93D;
@@ -20,67 +28,104 @@
   --qb-navy: #1B2A4E;
   --qb-navy-soft: #3B4A7E;
   --qb-white: #FFFFFF;
+  --qb-cloud: #F4FAFF;
 
-  // Discourse own variables — override to match.
+  // Discourse vars — most chrome reads from these.
   --primary: var(--qb-navy);
   --primary-low: rgba(27, 42, 78, 0.06);
   --primary-medium: rgba(27, 42, 78, 0.45);
-  --secondary: var(--qb-sky-1);
+  --primary-very-low: rgba(27, 42, 78, 0.03);
+  --secondary: var(--qb-cloud);
   --tertiary: var(--qb-coral);
+  --tertiary-low: rgba(233, 75, 126, 0.12);
   --tertiary-hover: var(--qb-coral-deep);
   --quaternary: var(--qb-sun);
   --highlight: var(--qb-sun);
   --love: var(--qb-coral);
   --danger: var(--qb-coral-deep);
   --success: var(--qb-grass);
+  --header_background: transparent;
+  --header_primary: var(--qb-navy);
 
-  // Picture-book "pop" shadow used everywhere on the main site.
+  // Pop-shadow utility used everywhere on the main site.
   --qb-pop: 4px 4px 0 0 var(--qb-navy);
   --qb-pop-sm: 2px 2px 0 0 var(--qb-navy);
+  --qb-pop-lg: 8px 8px 0 0 var(--qb-navy);
+  --qb-radius: 22px;
+  --qb-radius-sm: 14px;
 }
 
 // ── fonts ────────────────────────────────────────────────────────
 @import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap");
 
 html, body {
-  font-family: "Quicksand", system-ui, sans-serif;
+  font-family: "Quicksand", system-ui, sans-serif !important;
   font-weight: 600;
-  background: var(--qb-sky-1);
-  color: var(--qb-navy);
+  color: var(--qb-navy) !important;
+  background:
+    linear-gradient(180deg,
+      var(--qb-sky-1) 0%,
+      var(--qb-sky-2) 55%,
+      var(--qb-grass-soft) 100%) fixed !important;
+  min-height: 100vh;
 }
-h1, h2, h3, h4, .topic-title, .category-title-link {
+
+h1, h2, h3, h4, h5,
+.topic-title,
+.title,
+.category-title-link,
+.fancy-title,
+.create-topic-button,
+.btn-primary {
   font-family: "Fredoka", "Quicksand", system-ui, sans-serif !important;
   font-weight: 700;
-  color: var(--qb-navy);
 }
 
-// ── header chrome ────────────────────────────────────────────────
+// ── header — picture-book card spanning the top edge ────────────
 .d-header {
-  background: var(--qb-sky-1);
-  border-bottom: 4px solid var(--qb-navy);
-  box-shadow: var(--qb-pop);
+  background: var(--qb-white) !important;
+  border-bottom: 4px solid var(--qb-navy) !important;
+  box-shadow: 0 6px 0 0 var(--qb-navy) !important;
+  padding: 8px 0 !important;
+  height: auto !important;
+  min-height: 60px;
 }
-.d-header .title a {
-  font-family: "Fredoka", sans-serif;
-  font-weight: 700;
+.d-header .title a, .d-header .title a:visited {
   color: var(--qb-navy) !important;
+  font-family: "Fredoka", sans-serif !important;
+  font-weight: 700;
+  font-size: 22px;
+  text-decoration: none !important;
+  &:hover { color: var(--qb-coral-deep) !important; }
 }
-.d-header .header-buttons .btn {
-  border: 3px solid var(--qb-navy);
-  border-radius: 12px;
+.d-header img.logo-big,
+.d-header img.logo-small {
+  filter: drop-shadow(2px 2px 0 var(--qb-navy));
+}
+.d-header .header-buttons .btn,
+.d-header .header-buttons .icon {
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: 999px !important;
+  background: var(--qb-white) !important;
+  color: var(--qb-navy) !important;
   box-shadow: var(--qb-pop-sm);
-  background: var(--qb-white);
-  color: var(--qb-navy);
   &.btn-primary {
-    background: var(--qb-coral);
-    color: var(--qb-white);
-    border-color: var(--qb-navy);
+    background: var(--qb-coral) !important;
+    color: var(--qb-white) !important;
+  }
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 0 var(--qb-navy);
   }
 }
+.d-header .current-user img.avatar,
+.d-header .header-dropdown-toggle img.avatar {
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: 999px !important;
+  box-shadow: var(--qb-pop-sm);
+}
 
-// Main-site nav strip rendered by the JS initializer. Lives inside
-// .d-header .header-buttons. Mobile hides everything except the home
-// pill so the header doesn't get crushed.
+// ── injected main-site nav strip (rendered by quizbook-init.js) ──
 .qb-nav-strip {
   display: inline-flex;
   align-items: center;
@@ -114,76 +159,231 @@ h1, h2, h3, h4, .topic-title, .category-title-link {
   background: var(--qb-sun);
   font-size: 18px;
   padding: 4px 10px;
-  &:hover { background: var(--qb-sun-deep, #F4A93A); }
+  &:hover { background: var(--qb-sun-deep); }
 }
-@media (max-width: 900px) {
-  // Show only the home pill on tight screens; the rest collapses
-  // into Discourse's mobile menu.
+@media (max-width: 1100px) {
   .qb-nav-link:not(.qb-link-home) { display: none; }
 }
 
-// ── topic + category cards ──────────────────────────────────────
-.topic-list,
-.category-list,
-.list-controls,
-.contents .topic-list,
-.user-main .nav-pills {
+// ── injected homepage hero (rendered by quizbook-init.js) ───────
+.qb-hero {
+  margin: 18px auto;
+  max-width: 1080px;
+  padding: 22px 26px;
   background: var(--qb-white);
   border: 4px solid var(--qb-navy);
-  border-radius: 22px;
-  box-shadow: 8px 8px 0 0 var(--qb-navy);
-  padding: 12px 14px;
-  margin-bottom: 18px;
+  border-radius: var(--qb-radius);
+  box-shadow: var(--qb-pop-lg);
+  text-align: center;
+  position: relative;
 }
-.topic-list-item, .category {
-  border-bottom: 2px solid rgba(27, 42, 78, 0.12);
-  &:last-child { border-bottom: 0; }
-}
-
-// ── primary buttons get the "pop" treatment ──────────────────────
-.btn-primary,
-.create-topic,
-.btn.btn-icon.no-text.btn-primary {
-  background: var(--qb-coral);
-  border: 3px solid var(--qb-navy);
-  border-radius: 14px;
-  box-shadow: var(--qb-pop-sm);
-  color: var(--qb-white);
+.qb-hero-eyebrow {
+  display: inline-block;
   font-family: "Fredoka", sans-serif;
-  font-weight: 700;
-  &:hover {
-    background: var(--qb-coral-deep);
-    transform: translate(-1px, -1px);
-    box-shadow: var(--qb-pop);
-  }
-}
-.btn-default {
-  background: var(--qb-white);
-  border: 3px solid var(--qb-navy);
-  border-radius: 14px;
-  box-shadow: var(--qb-pop-sm);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   color: var(--qb-navy);
-  font-family: "Fredoka", sans-serif;
-  &:hover {
-    background: var(--qb-sky-1);
-  }
+  background: var(--qb-sun);
+  border: 3px solid var(--qb-navy);
+  border-radius: 999px;
+  padding: 4px 12px;
+  box-shadow: var(--qb-pop-sm);
 }
-
-// ── post body — softer, picture-book-friendly ───────────────────
-.cooked {
+.qb-hero h1 {
+  font-family: "Fredoka", sans-serif !important;
+  margin: 12px 0 4px;
+  color: var(--qb-navy);
+  font-size: clamp(28px, 5vw, 48px);
+  line-height: 1.1;
+  text-shadow: 3px 3px 0 var(--qb-sun);
+}
+.qb-hero p {
   font-family: "Quicksand", sans-serif;
+  font-size: 16px;
   color: var(--qb-navy);
-  line-height: 1.65;
+  max-width: 640px;
+  margin: 8px auto 0;
 }
-blockquote {
-  border-left: 4px solid var(--qb-coral);
-  background: var(--qb-sky-1);
+
+// ── topic list — picture-book card stack ────────────────────────
+#main-outlet .contents,
+.list-controls {
+  max-width: 1080px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.topic-list,
+.category-list {
+  background: var(--qb-white) !important;
+  border: 4px solid var(--qb-navy) !important;
+  border-radius: var(--qb-radius) !important;
+  box-shadow: var(--qb-pop-lg) !important;
+  padding: 14px 16px !important;
+  margin: 12px 0 22px !important;
+}
+.topic-list thead,
+.topic-list .topic-list-header,
+.topic-list-bottom { display: none !important; }
+
+.topic-list-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 14px 16px !important;
+  margin: 0 0 10px !important;
+  background: var(--qb-cloud) !important;
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: var(--qb-radius-sm) !important;
+  box-shadow: var(--qb-pop-sm) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:last-child { margin-bottom: 0 !important; }
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--qb-pop) !important;
+    background: var(--qb-white) !important;
+  }
+  > td { border: 0 !important; padding: 0 !important; vertical-align: middle; }
+}
+.topic-list-item .main-link a.title {
+  font-family: "Fredoka", sans-serif !important;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--qb-navy) !important;
+  text-decoration: none !important;
+  &:hover { color: var(--qb-coral-deep) !important; }
+}
+.topic-list-item .topic-excerpt,
+.topic-list-item .discourse-tags {
+  color: var(--qb-navy-soft) !important;
+}
+.topic-list-item .num.posts-map a,
+.topic-list-item .activity {
+  font-family: "Fredoka", sans-serif !important;
+  color: var(--qb-navy) !important;
+  font-weight: 600;
+}
+
+.topic-list-item .topic-list-data .topic-avatar img.avatar,
+.topic-list-item img.avatar,
+.user-card img.avatar,
+.post-avatar img.avatar {
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: 999px !important;
+  box-shadow: var(--qb-pop-sm);
+}
+
+.category-list .category {
+  background: var(--qb-cloud) !important;
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: var(--qb-radius-sm) !important;
+  box-shadow: var(--qb-pop-sm) !important;
+  padding: 14px 16px !important;
+  margin: 0 0 10px !important;
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--qb-pop) !important;
+    background: var(--qb-white) !important;
+  }
+}
+
+// ── buttons everywhere → pop pattern ────────────────────────────
+.btn,
+.create-topic-button,
+.btn-default {
+  background: var(--qb-white) !important;
+  color: var(--qb-navy) !important;
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: var(--qb-radius-sm) !important;
+  box-shadow: var(--qb-pop-sm) !important;
+  font-family: "Fredoka", sans-serif !important;
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--qb-pop) !important;
+    background: var(--qb-sky-1) !important;
+  }
+}
+.btn-primary,
+.create-topic-button.btn-primary,
+.btn.btn-primary {
+  background: var(--qb-coral) !important;
+  color: var(--qb-white) !important;
+  &:hover { background: var(--qb-coral-deep) !important; }
+}
+.btn-danger { background: var(--qb-coral-deep) !important; color: var(--qb-white) !important; }
+.btn.no-text { padding: 8px 12px !important; }
+.btn-icon-text .d-icon { margin-right: 6px; }
+
+// ── sidebar ─────────────────────────────────────────────────────
+.sidebar-wrapper {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-right: 4px dashed var(--qb-navy) !important;
+}
+.sidebar-section-header,
+.sidebar-section-link {
+  font-family: "Fredoka", sans-serif !important;
+  color: var(--qb-navy) !important;
+}
+.sidebar-section-link.active {
+  background: var(--qb-sun) !important;
+  color: var(--qb-navy) !important;
+  border: 2px solid var(--qb-navy) !important;
+  border-radius: 999px !important;
+  font-weight: 700;
+}
+
+// ── post body / cooked HTML ─────────────────────────────────────
+.cooked {
+  font-family: "Quicksand", sans-serif !important;
+  color: var(--qb-navy) !important;
+  line-height: 1.65;
+  font-size: 16px;
+}
+.cooked blockquote {
+  border-left: 4px solid var(--qb-coral) !important;
+  background: var(--qb-sky-1) !important;
   padding: 8px 14px;
   border-radius: 8px;
 }
+.cooked code {
+  background: var(--qb-cloud);
+  border: 2px solid var(--qb-navy);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 
-// Hide the small "Powered by Discourse" footer line. The forum is
-// branded as Quiz Book, full stop.
+// ── post stream — each post = card ──────────────────────────────
+.topic-post {
+  background: var(--qb-white) !important;
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: var(--qb-radius-sm) !important;
+  box-shadow: var(--qb-pop-sm) !important;
+  margin: 0 0 14px !important;
+  padding: 18px !important;
+}
+
+// ── invite-flow / "Launch in 3 easy steps" admin promo ──────────
+.admin-getting-started,
+.invite-modal,
+.welcome-quick-start,
+.dismiss-invite-banner {
+  background: var(--qb-white) !important;
+  border: 3px solid var(--qb-navy) !important;
+  border-radius: var(--qb-radius) !important;
+  box-shadow: var(--qb-pop) !important;
+}
+
+// ── banners + global-notices ────────────────────────────────────
+.global-notice .row,
+.banner {
+  background: var(--qb-sun) !important;
+  color: var(--qb-navy) !important;
+  border-bottom: 3px solid var(--qb-navy) !important;
+}
+
+// ── footer (rendered by common/footer.html) ─────────────────────
 .powered-by-discourse,
 .contents .powered-by,
 #footer-nav .powered-by,
@@ -192,15 +392,28 @@ blockquote {
 footer.discourse-footer {
   display: none !important;
 }
-
-// Custom footer block — populated by common/footer.html.
 .qb-footer {
   margin-top: 32px;
-  padding: 18px 14px;
+  padding: 22px 14px;
   text-align: center;
   background: var(--qb-grass-soft);
   border-top: 4px solid var(--qb-navy);
+  border-radius: var(--qb-radius) var(--qb-radius) 0 0;
   font-family: "Fredoka", sans-serif;
   color: var(--qb-navy);
-  a { color: var(--qb-coral-deep); text-decoration: underline; }
+  a {
+    color: var(--qb-coral-deep);
+    text-decoration: underline;
+    font-weight: 700;
+  }
 }
+
+// ── main outlet padding ─────────────────────────────────────────
+#main-outlet {
+  padding-top: 8px;
+  padding-bottom: 32px;
+}
+
+// ── selection + scrollbar ───────────────────────────────────────
+::selection { background: var(--qb-coral); color: var(--qb-white); }
+::-webkit-scrollbar-thumb { background: var(--qb-navy); border-radius: 4px; }
