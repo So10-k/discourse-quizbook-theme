@@ -78,30 +78,48 @@ h1, h2, h3, h4, .topic-title, .category-title-link {
   }
 }
 
-// Always-visible link back to the main site (rendered by the JS
-// initializer in javascripts/discourse/initializers/quizbook.js).
-.qb-site-link {
+// Main-site nav strip rendered by the JS initializer. Lives inside
+// .d-header .header-buttons. Mobile hides everything except the home
+// pill so the header doesn't get crushed.
+.qb-nav-strip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  margin-right: 10px;
+  flex-wrap: nowrap;
+}
+.qb-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 6px 12px;
-  margin-right: 8px;
   border: 3px solid var(--qb-navy);
   border-radius: 999px;
-  background: var(--qb-sun);
-  color: var(--qb-navy);
+  background: var(--qb-white);
+  color: var(--qb-navy) !important;
   font-family: "Fredoka", sans-serif;
   font-weight: 700;
   font-size: 13px;
-  text-decoration: none;
+  text-decoration: none !important;
   box-shadow: var(--qb-pop-sm);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
   &:hover {
     transform: translate(-1px, -1px);
     box-shadow: 3px 3px 0 0 var(--qb-navy);
-    color: var(--qb-navy);
-    text-decoration: none;
+    background: var(--qb-sky-1);
   }
+}
+.qb-nav-link.qb-link-home {
+  background: var(--qb-sun);
+  font-size: 18px;
+  padding: 4px 10px;
+  &:hover { background: var(--qb-sun-deep, #F4A93A); }
+}
+@media (max-width: 900px) {
+  // Show only the home pill on tight screens; the rest collapses
+  // into Discourse's mobile menu.
+  .qb-nav-link:not(.qb-link-home) { display: none; }
 }
 
 // ── topic + category cards ──────────────────────────────────────
