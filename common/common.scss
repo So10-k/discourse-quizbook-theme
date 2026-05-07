@@ -62,12 +62,81 @@ html, body {
   font-family: "Quicksand", system-ui, sans-serif !important;
   font-weight: 600;
   color: var(--qb-navy) !important;
-  background:
-    linear-gradient(180deg,
-      var(--qb-sky-1) 0%,
-      var(--qb-sky-2) 55%,
-      var(--qb-grass-soft) 100%) fixed !important;
+  // Fallback solid colour — the actual sky gradient + animated
+  // scene live inside #qb-sky (rendered by quizbook-init.js).
+  background: var(--qb-sky-2) !important;
   min-height: 100vh;
+}
+
+// ── animated sky scene ──────────────────────────────────────────
+// A fixed, full-bleed picture-book scene rendered behind Discourse's
+// content: gradient → drifting clouds → spinning sun → grassy hill
+// with flowers. Same look + animation params as the main site's
+// components/scene/SkyBackground.
+#qb-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.qb-sky-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    var(--qb-sky-1) 0%,
+    var(--qb-sky-2) 60%,
+    #5BA8D9 100%
+  );
+}
+#qb-sky .qb-sun {
+  position: absolute;
+  top: 108px;
+  right: 28px;
+  transform-origin: center;
+}
+#qb-sky .qb-cloud-row {
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+#qb-sky .qb-hill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 180px;
+}
+
+// Discourse's chrome must sit above the scene. These are the
+// stacking contexts that need explicit z-index. Header + sidebar
+// already get z-index from Discourse; we just bump #main-outlet
+// and the topic stream to be safe.
+.d-header { z-index: 1000 !important; }
+.sidebar-wrapper { z-index: 100 !important; position: relative; }
+#main-outlet { position: relative; z-index: 10; }
+.qb-footer { position: relative; z-index: 10; }
+
+// ── animations (mirror /app/globals.css) ────────────────────────
+@keyframes qb-drift {
+  0% { transform: translateX(-200%); }
+  100% { transform: translateX(200%); }
+}
+.qb-drift-slow { animation: qb-drift 90s linear infinite; }
+.qb-drift-mid  { animation: qb-drift 60s linear infinite; }
+.qb-drift-fast { animation: qb-drift 40s linear infinite; }
+@keyframes qb-spin {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
+.qb-spin { animation: qb-spin 60s linear infinite; transform-origin: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .qb-spin,
+  .qb-drift-slow,
+  .qb-drift-mid,
+  .qb-drift-fast { animation: none !important; }
 }
 
 h1, h2, h3, h4, h5,

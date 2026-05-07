@@ -71,6 +71,13 @@ export default {
         main.insertBefore(hero, main.firstChild);
       };
 
+      // ─── Animated sky scene (clouds + sun + grassy hill) ─────
+      // Same scene the main site uses, inlined as one SVG-bearing
+      // <div id="qb-sky"> fixed behind Discourse content. Inserted
+      // once at first paint; persists across SPA route changes
+      // (don't recreate, just leave it).
+      ensureSkyScene();
+
       api.onPageChange(() => {
         ensureStrip();
         ensureHero();
@@ -82,6 +89,106 @@ export default {
     });
   },
 };
+
+// ─── sky scene markup ─────────────────────────────────────────
+// Mirrors components/scene/* on the main site. Three drifting clouds
+// (slow/mid/fast), one slow-spinning sun, one grassy hill with
+// flowers across the bottom. Each animation has a CSS-only fallback
+// at @media (prefers-reduced-motion).
+function ensureSkyScene() {
+  if (document.getElementById("qb-sky")) return;
+  const sky = document.createElement("div");
+  sky.id = "qb-sky";
+  sky.setAttribute("aria-hidden", "true");
+  sky.innerHTML = `
+    <div class="qb-sky-gradient"></div>
+    <div class="qb-sun qb-spin">${sunSVG()}</div>
+    <div class="qb-cloud-row qb-drift-slow" style="top:130px;">${cloudSVG(150)}</div>
+    <div class="qb-cloud-row qb-drift-mid"  style="top:230px;"><div style="margin-left:32%">${cloudSVG(110)}</div></div>
+    <div class="qb-cloud-row qb-drift-fast" style="top:320px;"><div style="margin-left:65%">${cloudSVG(85)}</div></div>
+    ${hillSVG()}
+  `;
+  // Insert as the very first child of <body> so it sits behind
+  // everything — Discourse's #main-outlet etc. are already
+  // positioned + win the z-index race.
+  document.body.insertBefore(sky, document.body.firstChild);
+}
+
+function cloudSVG(size) {
+  const w = size;
+  const h = Math.round(size * 0.55);
+  return `
+    <svg width="${w}" height="${h}" viewBox="0 0 200 110" aria-hidden="true">
+      <ellipse cx="55"  cy="70" rx="40" ry="32" fill="#FFFFFF"/>
+      <ellipse cx="100" cy="55" rx="48" ry="40" fill="#FFFFFF"/>
+      <ellipse cx="150" cy="68" rx="38" ry="30" fill="#FFFFFF"/>
+      <ellipse cx="80"  cy="78" rx="34" ry="22" fill="#FFFFFF"/>
+      <ellipse cx="130" cy="80" rx="32" ry="20" fill="#FFFFFF"/>
+      <path d="M30 78 Q22 50 60 44 Q66 22 100 22 Q140 18 152 44 Q186 46 178 80 Q190 96 158 96 L46 96 Q22 96 30 78 Z"
+            fill="none" stroke="#1B2A4E" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+  `;
+}
+
+function sunSVG() {
+  // 12 long rays + 12 short between them, sun face with eyes,
+  // smile, blush. Same proportions as components/scene/Sun.tsx.
+  let longRays = "";
+  let shortRays = "";
+  for (let i = 0; i < 12; i++) {
+    const a = (i * 30 * Math.PI) / 180;
+    const x1 = 100 + Math.cos(a) * 80, y1 = 100 + Math.sin(a) * 80;
+    const x2 = 100 + Math.cos(a) * 96, y2 = 100 + Math.sin(a) * 96;
+    longRays += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    const ab = ((i * 30 + 15) * Math.PI) / 180;
+    const xb1 = 100 + Math.cos(ab) * 78, yb1 = 100 + Math.sin(ab) * 78;
+    const xb2 = 100 + Math.cos(ab) * 92, yb2 = 100 + Math.sin(ab) * 92;
+    shortRays += `<line x1="${xb1}" y1="${yb1}" x2="${xb2}" y2="${yb2}"/>`;
+  }
+  return `
+    <svg width="150" height="150" viewBox="0 0 200 200" aria-hidden="true">
+      <g stroke="#1B2A4E" stroke-width="3" stroke-linecap="round">${longRays}</g>
+      <g stroke="#1B2A4E" stroke-width="3" stroke-linecap="round">${shortRays}</g>
+      <circle cx="100" cy="100" r="64" fill="#FFD93D" stroke="#1B2A4E" stroke-width="3"/>
+      <circle cx="80"  cy="92" r="6" fill="#1B2A4E"/>
+      <circle cx="120" cy="92" r="6" fill="#1B2A4E"/>
+      <path d="M78 116 Q100 138 122 116" fill="none" stroke="#1B2A4E" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="74"  cy="112" r="6" fill="#E94B7E" opacity="0.7"/>
+      <circle cx="126" cy="112" r="6" fill="#E94B7E" opacity="0.7"/>
+    </svg>
+  `;
+}
+
+function hillSVG() {
+  // Two layered hill paths + sprinkled flowers. Same shape +
+  // colours as components/scene/Hill.tsx.
+  const flowers = [
+    [120, 138, "#E94B7E"],
+    [320, 132, "#FFD93D"],
+    [560, 142, "#FFFFFF"],
+    [820, 148, "#FFD93D"],
+    [1080, 138, "#E94B7E"],
+    [1280, 132, "#FFFFFF"],
+  ]
+    .map(
+      ([x, y, c]) => `
+      <g transform="translate(${x},${y})">
+        <line x1="0" y1="0" x2="0" y2="14" stroke="#2E7E2E" stroke-width="2"/>
+        <circle cx="0" cy="0" r="6" fill="${c}" stroke="#1B2A4E" stroke-width="2"/>
+        <circle cx="0" cy="0" r="2" fill="#1B2A4E"/>
+      </g>`
+    )
+    .join("");
+  return `
+    <svg class="qb-hill" viewBox="0 0 1440 240" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 120 C 240 60 480 60 720 110 C 960 160 1200 160 1440 100 L 1440 240 L 0 240 Z"
+            fill="#4FB04F" stroke="#1B2A4E" stroke-width="3"/>
+      <path d="M0 160 C 200 130 420 130 720 165 C 1020 200 1240 195 1440 160 L 1440 240 L 0 240 Z"
+            fill="#2E7E2E"/>
+      ${flowers}
+    </svg>
+  `;
+}
 
 function escapeHtml(s) {
   return String(s)
