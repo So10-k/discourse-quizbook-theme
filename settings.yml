@@ -1,0 +1,11 @@
+show_quiz_link:
+  default: true
+  description: "Show a 🌞 link back to the main Quiz Book site in the header."
+
+quiz_site_url:
+  default: "https://quiz.miaswebsites.art"
+  description: "Where the picture-book button + footer text point."
+
+community_tagline:
+  default: "Talk about the tournament. Predictions, gloating, snack reviews."
+  description: "Shown under the logo on the homepage."

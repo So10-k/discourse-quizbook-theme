@@ -1,0 +1,20 @@
+{
+  "name": "Quiz Book Theme",
+  "about_url": "https://quiz.miaswebsites.art",
+  "license_url": "https://quiz.miaswebsites.art",
+  "component": false,
+  "color_schemes": {
+    "Quiz Book": {
+      "primary": "1B2A4E",
+      "secondary": "B7E5FF",
+      "tertiary": "E94B7E",
+      "quaternary": "FFD93D",
+      "header_background": "B7E5FF",
+      "header_primary": "1B2A4E",
+      "highlight": "FFD93D",
+      "danger": "C9296A",
+      "success": "4FB04F",
+      "love": "E94B7E"
+    }
+  }
+}

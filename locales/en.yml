@@ -1,0 +1,7 @@
+en:
+  theme_metadata:
+    description: "Quiz Book theme — picture-book aesthetic for the Mia's Quiz Tournament discussion site."
+  theme_settings:
+    show_quiz_link: "Show the 🌞 Quiz Book link in the header back to the main site."
+    quiz_site_url: "Where the header link + footer point. Defaults to https://quiz.miaswebsites.art"
+    community_tagline: "Tagline shown beneath the forum logo on the homepage."

@@ -1,0 +1,188 @@
+// Quiz Book Discourse theme
+//
+// Strategy: Discourse exposes most chrome through its theme color
+// scheme + a handful of CSS custom properties. We override those at
+// :root, then layer specific selectors for the remaining stock UI
+// (header, post buttons, sidebar) so the result reads as a
+// picture-book site instead of a default Discourse instance.
+
+// ── design tokens (mirror /app/globals.css on the main site) ────
+:root {
+  --qb-sky-1: #B7E5FF;
+  --qb-sky-2: #87CEEB;
+  --qb-sun: #FFD93D;
+  --qb-sun-deep: #F4A93A;
+  --qb-coral: #E94B7E;
+  --qb-coral-deep: #C9296A;
+  --qb-coral-soft: #FF6B9D;
+  --qb-grass: #4FB04F;
+  --qb-grass-soft: #7DD87D;
+  --qb-navy: #1B2A4E;
+  --qb-navy-soft: #3B4A7E;
+  --qb-white: #FFFFFF;
+
+  // Discourse own variables — override to match.
+  --primary: var(--qb-navy);
+  --primary-low: rgba(27, 42, 78, 0.06);
+  --primary-medium: rgba(27, 42, 78, 0.45);
+  --secondary: var(--qb-sky-1);
+  --tertiary: var(--qb-coral);
+  --tertiary-hover: var(--qb-coral-deep);
+  --quaternary: var(--qb-sun);
+  --highlight: var(--qb-sun);
+  --love: var(--qb-coral);
+  --danger: var(--qb-coral-deep);
+  --success: var(--qb-grass);
+
+  // Picture-book "pop" shadow used everywhere on the main site.
+  --qb-pop: 4px 4px 0 0 var(--qb-navy);
+  --qb-pop-sm: 2px 2px 0 0 var(--qb-navy);
+}
+
+// ── fonts ────────────────────────────────────────────────────────
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap");
+
+html, body {
+  font-family: "Quicksand", system-ui, sans-serif;
+  font-weight: 600;
+  background: var(--qb-sky-1);
+  color: var(--qb-navy);
+}
+h1, h2, h3, h4, .topic-title, .category-title-link {
+  font-family: "Fredoka", "Quicksand", system-ui, sans-serif !important;
+  font-weight: 700;
+  color: var(--qb-navy);
+}
+
+// ── header chrome ────────────────────────────────────────────────
+.d-header {
+  background: var(--qb-sky-1);
+  border-bottom: 4px solid var(--qb-navy);
+  box-shadow: var(--qb-pop);
+}
+.d-header .title a {
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  color: var(--qb-navy) !important;
+}
+.d-header .header-buttons .btn {
+  border: 3px solid var(--qb-navy);
+  border-radius: 12px;
+  box-shadow: var(--qb-pop-sm);
+  background: var(--qb-white);
+  color: var(--qb-navy);
+  &.btn-primary {
+    background: var(--qb-coral);
+    color: var(--qb-white);
+    border-color: var(--qb-navy);
+  }
+}
+
+// Always-visible link back to the main site (rendered by the JS
+// initializer in javascripts/discourse/initializers/quizbook.js).
+.qb-site-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  border: 3px solid var(--qb-navy);
+  border-radius: 999px;
+  background: var(--qb-sun);
+  color: var(--qb-navy);
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  box-shadow: var(--qb-pop-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 0 var(--qb-navy);
+    color: var(--qb-navy);
+    text-decoration: none;
+  }
+}
+
+// ── topic + category cards ──────────────────────────────────────
+.topic-list,
+.category-list,
+.list-controls,
+.contents .topic-list,
+.user-main .nav-pills {
+  background: var(--qb-white);
+  border: 4px solid var(--qb-navy);
+  border-radius: 22px;
+  box-shadow: 8px 8px 0 0 var(--qb-navy);
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+.topic-list-item, .category {
+  border-bottom: 2px solid rgba(27, 42, 78, 0.12);
+  &:last-child { border-bottom: 0; }
+}
+
+// ── primary buttons get the "pop" treatment ──────────────────────
+.btn-primary,
+.create-topic,
+.btn.btn-icon.no-text.btn-primary {
+  background: var(--qb-coral);
+  border: 3px solid var(--qb-navy);
+  border-radius: 14px;
+  box-shadow: var(--qb-pop-sm);
+  color: var(--qb-white);
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  &:hover {
+    background: var(--qb-coral-deep);
+    transform: translate(-1px, -1px);
+    box-shadow: var(--qb-pop);
+  }
+}
+.btn-default {
+  background: var(--qb-white);
+  border: 3px solid var(--qb-navy);
+  border-radius: 14px;
+  box-shadow: var(--qb-pop-sm);
+  color: var(--qb-navy);
+  font-family: "Fredoka", sans-serif;
+  &:hover {
+    background: var(--qb-sky-1);
+  }
+}
+
+// ── post body — softer, picture-book-friendly ───────────────────
+.cooked {
+  font-family: "Quicksand", sans-serif;
+  color: var(--qb-navy);
+  line-height: 1.65;
+}
+blockquote {
+  border-left: 4px solid var(--qb-coral);
+  background: var(--qb-sky-1);
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+// Hide the small "Powered by Discourse" footer line. The forum is
+// branded as Quiz Book, full stop.
+.powered-by-discourse,
+.contents .powered-by,
+#footer-nav .powered-by,
+.below-site-header .powered-by,
+.about-discourse-version,
+footer.discourse-footer {
+  display: none !important;
+}
+
+// Custom footer block — populated by common/footer.html.
+.qb-footer {
+  margin-top: 32px;
+  padding: 18px 14px;
+  text-align: center;
+  background: var(--qb-grass-soft);
+  border-top: 4px solid var(--qb-navy);
+  font-family: "Fredoka", sans-serif;
+  color: var(--qb-navy);
+  a { color: var(--qb-coral-deep); text-decoration: underline; }
+}
