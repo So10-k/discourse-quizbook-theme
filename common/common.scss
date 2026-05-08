@@ -486,3 +486,134 @@ footer.discourse-footer {
 // ── selection + scrollbar ───────────────────────────────────────
 ::selection { background: var(--qb-coral); color: var(--qb-white); }
 ::-webkit-scrollbar-thumb { background: var(--qb-navy); border-radius: 4px; }
+
+// ── group flair effects ─────────────────────────────────────────
+// Discourse renders group flair as a small SVG badge in the bottom-
+// right corner of the user's avatar. We pop it out with the
+// picture-book border + offset shadow so it stops looking like a
+// generic SaaS pill.
+.avatar-flair {
+  border: 2px solid var(--qb-navy) !important;
+  box-shadow: 1px 1px 0 0 var(--qb-navy);
+  background: var(--qb-white) !important;
+}
+
+// Each user's `.user-card` / post `.topic-meta-data` etc gets a
+// `.group-<name>` class added by Discourse when their primary group
+// matches. That gives us hooks for per-group flourishes.
+
+// AUTHORS — sun-yellow glow ring + slow shimmer on the avatar.
+[data-user-card].group-authors,
+.topic-list-item.group-authors,
+.post-stream .topic-post.group-authors {
+  // hook present; we mainly style children
+}
+.group-authors img.avatar,
+.user-info.group-authors img.avatar {
+  box-shadow:
+    0 0 0 3px var(--qb-sun),
+    0 0 12px 3px rgba(255, 217, 61, 0.55),
+    var(--qb-pop-sm) !important;
+  border-radius: 999px !important;
+  animation: qb-author-glow 3s ease-in-out infinite;
+}
+@keyframes qb-author-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 3px var(--qb-sun),
+      0 0 10px 3px rgba(255, 217, 61, 0.5),
+      var(--qb-pop-sm);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px var(--qb-sun-deep),
+      0 0 18px 5px rgba(244, 169, 58, 0.7),
+      var(--qb-pop);
+  }
+}
+
+// FINALISTS — coral-deep ring + gold shimmer on the username text.
+.group-finalists img.avatar {
+  box-shadow:
+    0 0 0 3px var(--qb-coral-deep),
+    0 0 14px 4px rgba(201, 41, 106, 0.55),
+    var(--qb-pop-sm) !important;
+  border-radius: 999px !important;
+}
+.group-finalists .username,
+.group-finalists .topic-post .post-info-username,
+.group-finalists .first.username {
+  background: linear-gradient(
+    90deg,
+    var(--qb-coral-deep) 0%,
+    var(--qb-sun) 50%,
+    var(--qb-coral-deep) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  font-weight: 700;
+  animation: qb-finalist-shimmer 4s linear infinite;
+}
+@keyframes qb-finalist-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 220% 50%; }
+}
+
+// SEMI-FINALISTS — sun-orange ring, no animation.
+.group-semi_finalists img.avatar {
+  box-shadow:
+    0 0 0 3px var(--qb-sun-deep),
+    0 0 10px 2px rgba(244, 169, 58, 0.5),
+    var(--qb-pop-sm) !important;
+  border-radius: 999px !important;
+}
+.group-semi_finalists .username {
+  color: #B85A0F !important; // darker than sun-deep for legibility
+  font-weight: 700;
+}
+
+// PLAYERS — quiet grass-deep ring (still in).
+.group-players img.avatar {
+  box-shadow:
+    0 0 0 2px var(--qb-grass),
+    var(--qb-pop-sm) !important;
+  border-radius: 999px !important;
+}
+
+// SPECTATORS — soft sky ring, italic name.
+.group-spectators img.avatar {
+  box-shadow:
+    0 0 0 2px var(--qb-sky-2),
+    var(--qb-pop-sm) !important;
+  border-radius: 999px !important;
+  opacity: 0.95;
+}
+.group-spectators .username {
+  color: var(--qb-navy-soft) !important;
+  font-style: italic;
+}
+
+// User titles next to names — picture-book pill treatment.
+.user-title,
+.topic-post .post-info-username .user-title,
+.post-info .user-title {
+  display: inline-block;
+  font-family: "Fredoka", sans-serif !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em;
+  padding: 2px 8px !important;
+  border: 2px solid var(--qb-navy) !important;
+  border-radius: 999px !important;
+  margin-left: 6px;
+  background: var(--qb-cloud);
+  color: var(--qb-navy);
+  vertical-align: middle;
+  box-shadow: 1px 1px 0 0 var(--qb-navy);
+}
+.group-authors .user-title { background: var(--qb-coral); color: var(--qb-white) !important; }
+.group-finalists .user-title { background: var(--qb-coral-deep); color: var(--qb-white) !important; }
+.group-semi_finalists .user-title { background: var(--qb-sun-deep); color: var(--qb-white) !important; }
+.group-players .user-title { background: var(--qb-grass); color: var(--qb-white) !important; }
+.group-spectators .user-title { background: var(--qb-sky-1); color: var(--qb-navy) !important; font-style: italic; }
