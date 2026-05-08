@@ -123,15 +123,36 @@ export default {
         }
       };
 
+      // ─── Terms-agreement gate ─────────────────────────────────
+      // If the current user is in `pending_terms` (set by the
+      // bridge plugin on first SSO login), redirect every page to
+      // their welcome PM until they reply with "yes". Soft gate —
+      // not a hard ACL — but enough for a family-game forum.
+      const ensureTermsGate = () => {
+        const me = api.getCurrentUser();
+        if (!me || !me.qb_is_pending_terms) return;
+        const path = window.location.pathname;
+        const pmId = me.qb_terms_pm_topic_id;
+        if (!pmId) return;
+        // Already on the welcome PM? Let it through.
+        if (path.startsWith(`/t/`) && path.includes(`/${pmId}`)) return;
+        // Allow the inbox + the user's own profile + login pages.
+        if (path.startsWith(`/u/${me.username}/messages`)) return;
+        if (path === "/login" || path === "/signup") return;
+        window.location.replace(`/t/${pmId}`);
+      };
+
       api.onPageChange(() => {
         ensureStrip();
         ensureHero();
         ensureHud();
+        ensureTermsGate();
       });
       setTimeout(() => {
         ensureStrip();
         ensureHero();
         ensureHud();
+        ensureTermsGate();
       }, 100);
       // Refresh HUD every 5 minutes while the tab is open.
       setInterval(() => {
