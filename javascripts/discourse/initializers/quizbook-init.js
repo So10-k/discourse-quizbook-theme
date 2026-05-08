@@ -123,20 +123,26 @@ export default {
         }
       };
 
-      // ─── Terms-agreement gate ─────────────────────────────────
-      // If the current user is in `pending_terms` (set by the
-      // bridge plugin on first SSO login), redirect every page to
-      // their welcome PM until they reply with "yes". Soft gate —
-      // not a hard ACL — but enough for a family-game forum.
+      // ─── Holding-zone gate ─────────────────────────────────────
+      // If the current user is in `held_for_review` (admin-imposed
+      // hold) OR `pending_terms` (first-login), redirect every page
+      // to the corresponding PM. held_for_review wins when both are
+      // set. Soft gate — not a hard ACL — but enough for a family-
+      // game forum.
       const ensureTermsGate = () => {
         const me = api.getCurrentUser();
-        if (!me || !me.qb_is_pending_terms) return;
-        const path = window.location.pathname;
-        const pmId = me.qb_terms_pm_topic_id;
+        if (!me) return;
+        let pmId = null;
+        if (me.qb_is_held_for_review && me.qb_review_pm_topic_id) {
+          pmId = me.qb_review_pm_topic_id;
+        } else if (me.qb_is_pending_terms && me.qb_terms_pm_topic_id) {
+          pmId = me.qb_terms_pm_topic_id;
+        }
         if (!pmId) return;
-        // Already on the welcome PM? Let it through.
+        const path = window.location.pathname;
+        // Already on the relevant PM? Let it through.
         if (path.startsWith(`/t/`) && path.includes(`/${pmId}`)) return;
-        // Allow the inbox + the user's own profile + login pages.
+        // Allow the inbox + login pages so they can navigate to the PM.
         if (path.startsWith(`/u/${me.username}/messages`)) return;
         if (path === "/login" || path === "/signup") return;
         window.location.replace(`/t/${pmId}`);
