@@ -1,10 +1,14 @@
 // Quiz Book theme — JS initializer.
 //
-// Two responsibilities:
+// Responsibilities:
 //   1) Inject the main-site nav strip into the Discourse header.
-//   2) Inject a "Discuss the tournament" hero block at the top of
+//   2) Inject a tournament-state HUD strip ("📚 Chapter 4 · 12
+//      players in · closes in 2h 14m") fed by the public
+//      /api/forum/state JSON on the quiz site.
+//   3) Inject a "Discuss the tournament" hero block at the top of
 //      the homepage so it visually anchors the forum as part of
 //      the Quiz Book site.
+//   4) Render the picture-book sky scene behind everything.
 //
 // Modernized: avoids `Discourse.SiteSettings` (deprecated). The
 // theme system auto-injects `settings` (the theme's own settings)
@@ -78,17 +82,129 @@ export default {
       // (don't recreate, just leave it).
       ensureSkyScene();
 
+      // ─── Tournament HUD strip ─────────────────────────────────
+      // Sits between the header and the main content. Fed by
+      // /api/forum/state on the quiz site. Re-fetches every
+      // 5 minutes when the tab is visible.
+      const stateUrl = url.replace(/\/$/, "") + "/api/forum/state";
+      let lastFetchedAt = 0;
+      const ensureHud = async () => {
+        const main = document.getElementById("main-outlet-wrapper") ||
+                     document.getElementById("main-outlet");
+        if (!main) return;
+        let hud = document.getElementById("qb-hud");
+        if (!hud) {
+          hud = document.createElement("div");
+          hud.id = "qb-hud";
+          hud.className = "qb-hud qb-hud-loading";
+          hud.innerHTML = `<span class="qb-hud-emoji">📚</span><span class="qb-hud-text">Loading tournament state…</span>`;
+          main.parentNode.insertBefore(hud, main);
+        }
+        // Throttle the fetch to once per 5 min unless forced.
+        const now = Date.now();
+        if (now - lastFetchedAt < 5 * 60 * 1000 && hud.dataset.loaded === "1") {
+          return;
+        }
+        lastFetchedAt = now;
+        try {
+          const res = await fetch(stateUrl, {
+            credentials: "omit",
+            cache: "no-store",
+          });
+          if (!res.ok) throw new Error("bad status");
+          const data = await res.json();
+          renderHud(hud, data, url);
+        } catch (e) {
+          // Silent failure — leave the loading state to disappear
+          // gracefully, or hide on retry.
+          hud.classList.add("qb-hud-error");
+          hud.querySelector(".qb-hud-text").textContent =
+            "Tournament state unavailable.";
+        }
+      };
+
       api.onPageChange(() => {
         ensureStrip();
         ensureHero();
+        ensureHud();
       });
       setTimeout(() => {
         ensureStrip();
         ensureHero();
+        ensureHud();
       }, 100);
+      // Refresh HUD every 5 minutes while the tab is open.
+      setInterval(() => {
+        if (document.visibilityState === "visible") ensureHud();
+      }, 5 * 60 * 1000);
     });
   },
 };
+
+function renderHud(hud, data, baseUrl) {
+  hud.classList.remove("qb-hud-loading", "qb-hud-error");
+  hud.dataset.loaded = "1";
+  if (!data || !data.ok || !data.tournament) {
+    hud.classList.add("qb-hud-empty");
+    hud.innerHTML = `
+      <span class="qb-hud-emoji">📖</span>
+      <span class="qb-hud-text">No tournament running right now.</span>
+      <a class="qb-hud-cta" href="${baseUrl}">Visit Quiz Book →</a>`;
+    return;
+  }
+  const t = data.tournament;
+  const stage = t.status === "complete"
+    ? "🏆 Tournament complete"
+    : t.status === "in_progress"
+    ? `⚔️ ${t.title}`
+    : `🎟️ ${t.title}`;
+  const chapter = t.currentRoundChapter
+    ? `Chapter ${t.currentRoundChapter}${t.currentRoundTitle ? " · " + escapeHtml(t.currentRoundTitle) : ""}`
+    : "Registration open";
+  let countdown = "";
+  if (data.nextRoundClosesAt) {
+    const ms = Date.parse(data.nextRoundClosesAt) - Date.now();
+    if (ms > 0) countdown = `closes in ${humanDuration(ms)}`;
+  } else if (data.nextRoundOpensAt) {
+    const ms = Date.parse(data.nextRoundOpensAt) - Date.now();
+    if (ms > 0) countdown = `opens in ${humanDuration(ms)}`;
+  }
+  const playersBadge =
+    data.activePlayers > 0
+      ? `${data.activePlayers} of ${data.totalEnrolled} still in`
+      : `${data.totalEnrolled} signed up`;
+  const championLine = data.champion
+    ? ` · 🏆 Champion: ${escapeHtml(data.champion.name || data.champion.username)}`
+    : "";
+  hud.innerHTML = `
+    <span class="qb-hud-emoji">${t.status === "complete" ? "🏆" : "📚"}</span>
+    <span class="qb-hud-stage">${escapeHtml(stage)}</span>
+    <span class="qb-hud-sep">·</span>
+    <span class="qb-hud-chapter">${escapeHtml(chapter)}</span>
+    <span class="qb-hud-sep">·</span>
+    <span class="qb-hud-players">${escapeHtml(playersBadge)}</span>
+    ${countdown ? `<span class="qb-hud-sep">·</span><span class="qb-hud-countdown">⏳ ${escapeHtml(countdown)}</span>` : ""}
+    ${championLine ? `<span class="qb-hud-champion">${championLine}</span>` : ""}
+    <a class="qb-hud-cta" href="${baseUrl}/play">Play →</a>
+  `;
+}
+
+// Human-friendly "in 2h 14m" / "in 3d" formatting. Mirrors the
+// main-site countdown widget so the forum HUD reads the same.
+function humanDuration(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) {
+    const rm = m % 60;
+    return rm > 0 ? `${h}h ${rm}m` : `${h}h`;
+  }
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  return rh > 0 ? `${d}d ${rh}h` : `${d}d`;
+}
 
 // ─── sky scene markup ─────────────────────────────────────────
 // Mirrors components/scene/* on the main site. Three drifting clouds
