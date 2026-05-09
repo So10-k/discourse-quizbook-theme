@@ -124,29 +124,33 @@ export default {
       };
 
       // ─── Holding-zone gate ─────────────────────────────────────
-      // If the current user is in any of the active holding-zone
-      // groups, redirect every page to the corresponding PM. Priority
-      // order (most-pressing first):
-      //   1. held_for_review  → admin-imposed hold
-      //   2. pending_finals_nda → finalist confidentiality gate
-      //   3. pending_terms    → first-login agreement
-      // Soft gate, not a hard ACL — enough for a family-game forum.
+      // Priority order (most-pressing first, but with a logical
+      // sequence for users who hit multiple gates at once):
+      //   1. held_for_review     → admin-imposed hold (hardest stop)
+      //   2. pending_terms       → general terms (foundation; do
+      //                            this first so a brand-new finalist
+      //                            agrees to the basics before the NDA)
+      //   3. pending_finals_nda  → finalist confidentiality (layered
+      //                            on top of general terms)
+      //
+      // A brand-new finalist gets BOTH the welcome PM and the NDA PM
+      // in their inbox simultaneously. The gate sends them to the
+      // welcome PM first; after they reply "yes", the terms group
+      // is removed and the next page load picks up the NDA gate.
       const ensureTermsGate = () => {
         const me = api.getCurrentUser();
         if (!me) return;
         let pmId = null;
         if (me.qb_is_held_for_review && me.qb_review_pm_topic_id) {
           pmId = me.qb_review_pm_topic_id;
-        } else if (me.qb_is_pending_finals_nda && me.qb_finals_nda_pm_topic_id) {
-          pmId = me.qb_finals_nda_pm_topic_id;
         } else if (me.qb_is_pending_terms && me.qb_terms_pm_topic_id) {
           pmId = me.qb_terms_pm_topic_id;
+        } else if (me.qb_is_pending_finals_nda && me.qb_finals_nda_pm_topic_id) {
+          pmId = me.qb_finals_nda_pm_topic_id;
         }
         if (!pmId) return;
         const path = window.location.pathname;
-        // Already on the relevant PM? Let it through.
         if (path.startsWith(`/t/`) && path.includes(`/${pmId}`)) return;
-        // Allow the inbox + login pages so they can navigate to the PM.
         if (path.startsWith(`/u/${me.username}/messages`)) return;
         if (path === "/login" || path === "/signup") return;
         window.location.replace(`/t/${pmId}`);
