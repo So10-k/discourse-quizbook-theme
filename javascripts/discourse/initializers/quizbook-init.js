@@ -124,17 +124,21 @@ export default {
       };
 
       // ─── Holding-zone gate ─────────────────────────────────────
-      // If the current user is in `held_for_review` (admin-imposed
-      // hold) OR `pending_terms` (first-login), redirect every page
-      // to the corresponding PM. held_for_review wins when both are
-      // set. Soft gate — not a hard ACL — but enough for a family-
-      // game forum.
+      // If the current user is in any of the active holding-zone
+      // groups, redirect every page to the corresponding PM. Priority
+      // order (most-pressing first):
+      //   1. held_for_review  → admin-imposed hold
+      //   2. pending_finals_nda → finalist confidentiality gate
+      //   3. pending_terms    → first-login agreement
+      // Soft gate, not a hard ACL — enough for a family-game forum.
       const ensureTermsGate = () => {
         const me = api.getCurrentUser();
         if (!me) return;
         let pmId = null;
         if (me.qb_is_held_for_review && me.qb_review_pm_topic_id) {
           pmId = me.qb_review_pm_topic_id;
+        } else if (me.qb_is_pending_finals_nda && me.qb_finals_nda_pm_topic_id) {
+          pmId = me.qb_finals_nda_pm_topic_id;
         } else if (me.qb_is_pending_terms && me.qb_terms_pm_topic_id) {
           pmId = me.qb_terms_pm_topic_id;
         }
